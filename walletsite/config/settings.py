@@ -54,12 +54,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'drf_yasg',
+    'corsheaders',
     'wallet',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -167,6 +169,22 @@ SECURE_HSTS_PRELOAD = not DEBUG
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://petstore.swagger.io",
+    "https://editor.swagger.io",
+    "https://swagger.io",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "https://ammr-django-wallet.onrender.com",
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.swagger\.io$",
+    r"^https://.*\.onrender\.com$",
+]
 
 # Swagger settings
 SWAGGER_SETTINGS = {

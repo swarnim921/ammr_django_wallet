@@ -11,6 +11,14 @@ from .models import Wallet, Transaction
 from .serializers import UserSerializer, WalletSerializer, TransactionSerializer
 
 
+@swagger_auto_schema(
+    operation_description="Get all users in the system",
+    responses={
+        200: UserSerializer(many=True),
+        400: 'Bad Request',
+        500: 'Internal Server Error'
+    }
+)
 class UserListAPIView(generics.ListAPIView):
     queryset = get_user_model().objects.all().order_by('id')
     serializer_class = UserSerializer
@@ -81,6 +89,23 @@ def wallet_update(request):
     return Response(WalletSerializer(wallet).data, status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(
+    operation_description="Get all transactions for a specific user",
+    manual_parameters=[
+        openapi.Parameter(
+            'user_id',
+            openapi.IN_PATH,
+            description="User ID to get transactions for",
+            type=openapi.TYPE_INTEGER,
+            required=True
+        )
+    ],
+    responses={
+        200: TransactionSerializer(many=True),
+        404: 'User not found',
+        500: 'Internal Server Error'
+    }
+)
 class UserTransactionsAPIView(generics.ListAPIView):
     serializer_class = TransactionSerializer
 

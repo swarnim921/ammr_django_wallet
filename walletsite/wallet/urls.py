@@ -3,7 +3,17 @@ from django.http import JsonResponse
 from .views import UserListAPIView, wallet_update, UserTransactionsAPIView
 
 def api_test(request):
-    return JsonResponse({'status': 'API is working!', 'message': 'Django Wallet API is running correctly'})
+    return JsonResponse({
+        'status': 'API is working!', 
+        'message': 'Django Wallet API is running correctly',
+        'endpoints': {
+            'users': '/api/users/',
+            'wallet_update': '/api/wallet/update/',
+            'transactions': '/api/transactions/<user_id>/',
+            'swagger': '/swagger/',
+            'docs': '/docs/'
+        }
+    })
 
 urlpatterns = [
 	path('test/', api_test, name='api-test'),
