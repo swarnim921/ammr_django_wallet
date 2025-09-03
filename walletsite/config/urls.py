@@ -16,9 +16,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
+
+def root_view(request):
+    return JsonResponse({
+        'message': 'Django Wallet API is running!',
+        'endpoints': {
+            'admin': '/admin/',
+            'api': '/api/',
+            'swagger': '/swagger/',
+            'users': '/api/users/',
+            'wallet_update': '/api/wallet/update/',
+            'transactions': '/api/transactions/<user_id>/'
+        }
+    })
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -31,6 +45,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('', root_view, name='root'),
     path('admin/', admin.site.urls),
     path('api/', include('wallet.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
