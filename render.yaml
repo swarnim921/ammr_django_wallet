@@ -5,8 +5,8 @@ services:
     rootDir: walletsite
     plan: free
     region: oregon
-    buildCommand: bash -lc "pip install -r walletsite/requirements.txt; cd walletsite; python manage.py collectstatic --noinput"
-    startCommand: bash -lc "cd walletsite; python manage.py migrate --noinput || (sleep 5 && python manage.py migrate --noinput); gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers=1 --timeout 120 --log-file -"
+    buildCommand: bash -lc "python -m venv .venv && .venv/bin/pip install --upgrade pip && .venv/bin/pip install -r requirements.txt && .venv/bin/python manage.py collectstatic --noinput"
+    startCommand: bash -lc ".venv/bin/python manage.py migrate --noinput || (sleep 5 && .venv/bin/python manage.py migrate --noinput); .venv/bin/python -c 'import os, django; django.setup(); from django.contrib.auth import get_user_model; u=os.environ.get(\"ADMIN_USERNAME\"); p=os.environ.get(\"ADMIN_PASSWORD\"); e=os.environ.get(\"ADMIN_EMAIL\"); User=get_user_model();\nif u and p and e:\n user, created = User.objects.get_or_create(username=u, defaults={\"email\": e}); user.is_staff = True; user.is_superuser = True; user.email = e; user.set_password(p); user.save(); print(\"Admin upserted:\", u, \"created=\", created)\nelse:\n print(\"Admin env vars missing; skipping\")'; exec .venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers=1 --timeout 120 --log-file -"
     autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
@@ -27,6 +27,12 @@ services:
         fromDatabase:
           name: walletsite-postgres
           property: connectionString
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        value: admin123
+      - key: ADMIN_EMAIL
+        value: admin@example.com
     healthCheckPath: /admin/login/
 
 databases:

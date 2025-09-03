@@ -92,49 +92,28 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# Preferred (explicit env vars on Render)
-_db_name = os.getenv('DB_NAME')
-_db_user = os.getenv('DB_USER')
-_db_password = os.getenv('DB_PASSWORD')
-_db_host = os.getenv('DB_HOST')
-_db_port = os.getenv('DB_PORT', '5432')
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
 
-if _db_name and _db_user and _db_password and _db_host:
+if DATABASE_URL:
+    # Use PostgreSQL with DATABASE_URL (Render default)
+    import dj_database_url
+    db_ssl_require = os.getenv('DB_SSL_REQUIRE', 'true').lower() in ('1', 'true', 'yes')
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': _db_name,
-            'USER': _db_user,
-            'PASSWORD': _db_password,
-            'HOST': _db_host,
-            'PORT': _db_port,
-        }
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=db_ssl_require,
+        )
     }
 else:
-    # Fallback to single DATABASE_URL if provided
+    # Fallback to SQLite for local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-    DATABASE_URL = os.getenv('DATABASE_URL')
-    if DATABASE_URL:
-        import dj_database_url
-
-        db_ssl_require = os.getenv('DB_SSL_REQUIRE', 'true').lower() in ('1', 'true', 'yes')
-        DATABASES['default'] = dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=db_ssl_require,
-        )
-    elif os.getenv('VERCEL'):
-        # For Vercel, use SQLite in /tmp directory (serverless-friendly)
-        DATABASES['default'] = {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '/tmp/db.sqlite3',
-        }
 
 
 # Password validation
