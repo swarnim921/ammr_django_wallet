@@ -1,0 +1,5 @@
+[33m4b45895[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m fix: improve Swagger config and add fallback HTML docs for 500 errors
+[33m5310498[m fix: improve Gunicorn config and add health check endpoint for 502 errors
+[33m7cb793e[m debug: add API test endpoint and improve Swagger config
+[33m5bea3f9[m fix: simplify database config and add admin credentials for testing
+[33m67cd9e5[m fix: add root URL endpoint to show API info
