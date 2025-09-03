@@ -38,21 +38,83 @@ def root_view(request):
 def health_check(request):
     return JsonResponse({'status': 'ok', 'message': 'Health check passed'})
 
+def api_docs(request):
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Django Wallet API Documentation</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .endpoint { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+            .method { font-weight: bold; color: #007bff; }
+            .url { font-family: monospace; background: #e9ecef; padding: 2px 5px; }
+        </style>
+    </head>
+    <body>
+        <h1>Django Wallet API Documentation</h1>
+        <p>Simple API documentation for testing endpoints.</p>
+        
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <div class="url">/api/test/</div>
+            <p>Test endpoint to verify API is working</p>
+        </div>
+        
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <div class="url">/api/users/</div>
+            <p>Get all users in the system</p>
+        </div>
+        
+        <div class="endpoint">
+            <div class="method">POST</div>
+            <div class="url">/api/wallet/update/</div>
+            <p>Update wallet balance (credit/debit money)</p>
+            <p><strong>Body:</strong> {"user_id": 1, "amount": "100.50", "transaction_type": "credit", "description": "Deposit"}</p>
+        </div>
+        
+        <div class="endpoint">
+            <div class="method">GET</div>
+            <div class="url">/api/transactions/{user_id}/</div>
+            <p>Get all transactions for a specific user</p>
+        </div>
+        
+        <h2>Test with curl:</h2>
+        <pre>
+# Test API
+curl https://ammr-django-wallet.onrender.com/api/test/
+
+# Credit money
+curl -X POST https://ammr-django-wallet.onrender.com/api/wallet/update/ \\
+  -H "Content-Type: application/json" \\
+  -d '{"user_id": 1, "amount": "100.00", "transaction_type": "credit", "description": "Test deposit"}'
+        </pre>
+    </body>
+    </html>
+    """
+    from django.http import HttpResponse
+    return HttpResponse(html)
+
 # Simplified Swagger configuration
 schema_view = get_schema_view(
     openapi.Info(
         title="Wallet API",
         default_version='v1',
         description="API documentation for Wallet service",
+        contact=openapi.Contact(email="admin@example.com"),
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
-    url=None,  # Use current request URL
+    patterns=[
+        path('api/', include('wallet.urls')),
+    ],
 )
 
 urlpatterns = [
     path('', root_view, name='root'),
     path('health/', health_check, name='health'),
+    path('docs/', api_docs, name='api-docs'),
     path('admin/', admin.site.urls),
     path('api/', include('wallet.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

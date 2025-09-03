@@ -4,6 +4,8 @@ from django.db import transaction as db_transaction
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from .models import Wallet, Transaction
 from .serializers import UserSerializer, WalletSerializer, TransactionSerializer
@@ -14,6 +16,25 @@ class UserListAPIView(generics.ListAPIView):
     serializer_class = UserSerializer
 
 
+@swagger_auto_schema(
+    method='post',
+    operation_description="Update wallet balance by crediting or debiting money",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=['user_id', 'amount', 'transaction_type'],
+        properties={
+            'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='User ID'),
+            'amount': openapi.Schema(type=openapi.TYPE_STRING, description='Amount to credit/debit'),
+            'transaction_type': openapi.Schema(type=openapi.TYPE_STRING, enum=['credit', 'debit'], description='Type of transaction'),
+            'description': openapi.Schema(type=openapi.TYPE_STRING, description='Transaction description'),
+        }
+    ),
+    responses={
+        200: WalletSerializer,
+        400: 'Bad Request - Invalid data or insufficient balance',
+        404: 'User not found'
+    }
+)
 @api_view(['POST'])
 def wallet_update(request):
     user_id = request.data.get('user_id')
