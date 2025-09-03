@@ -6,23 +6,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-# Install system deps (libpq for psycopg2-binary runtime SSL)
+# Install system deps for psycopg2
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    curl \
+    libpq-dev gcc \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy app files
+# Copy dependency file and install
+COPY walletsite/requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt
+
+# Copy project
 COPY walletsite/ /app/
-
-# Install dependencies
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
-
-# Collect static (safe if no storage backend)
-RUN python manage.py collectstatic --noinput || true
 
 # Environment
 ENV DJANGO_SETTINGS_MODULE=config.settings \
@@ -30,5 +27,5 @@ ENV DJANGO_SETTINGS_MODULE=config.settings \
 
 EXPOSE 8000
 
-# Start with migrations then gunicorn
-CMD ["bash", "-lc", "python manage.py migrate --noinput || (sleep 5 && python manage.py migrate --noinput); gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers=1 --timeout 120 --log-file -"]
+# Run with Gunicorn (collectstatic/migrate should be done by platform hooks or entrypoint)
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
