@@ -92,27 +92,45 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Preferred (explicit env vars on Render)
+_db_name = os.getenv('DB_NAME')
+_db_user = os.getenv('DB_USER')
+_db_password = os.getenv('DB_PASSWORD')
+_db_host = os.getenv('DB_HOST')
+_db_port = os.getenv('DB_PORT', '5432')
+
+if _db_name and _db_user and _db_password and _db_host:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _db_name,
+            'USER': _db_user,
+            'PASSWORD': _db_password,
+            'HOST': _db_host,
+            'PORT': _db_port,
+        }
     }
-}
-
-# Override database via DATABASE_URL if provided (e.g., Render Postgres, Vercel Postgres)
-DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL:
-    import dj_database_url
-
-    db_ssl_require = os.getenv('DB_SSL_REQUIRE', 'true').lower() in ('1', 'true', 'yes')
-    DATABASES['default'] = dj_database_url.parse(
-        DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=db_ssl_require,
-    )
 else:
-    # For Vercel, use SQLite in /tmp directory (serverless-friendly)
-    if os.getenv('VERCEL'):
+    # Fallback to single DATABASE_URL if provided
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    if DATABASE_URL:
+        import dj_database_url
+
+        db_ssl_require = os.getenv('DB_SSL_REQUIRE', 'true').lower() in ('1', 'true', 'yes')
+        DATABASES['default'] = dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=db_ssl_require,
+        )
+    elif os.getenv('VERCEL'):
+        # For Vercel, use SQLite in /tmp directory (serverless-friendly)
         DATABASES['default'] = {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': '/tmp/db.sqlite3',

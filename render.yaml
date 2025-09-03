@@ -5,7 +5,7 @@ services:
     rootDir: walletsite
     plan: free
     region: oregon
-    buildCommand: bash -lc "if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install -r walletsite/requirements.txt; fi; cd walletsite; python manage.py collectstatic --noinput"
+    buildCommand: bash -lc "pip install -r walletsite/requirements.txt; cd walletsite; python manage.py collectstatic --noinput"
     startCommand: bash -lc "cd walletsite; python manage.py migrate --noinput || (sleep 5 && python manage.py migrate --noinput); gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers=1 --timeout 120 --log-file -"
     autoDeploy: true
     envVars:
