@@ -6,7 +6,7 @@ services:
     plan: free
     region: oregon
     buildCommand: bash -lc "python -m venv .venv && .venv/bin/pip install --upgrade pip && .venv/bin/pip install -r requirements.txt && .venv/bin/python manage.py collectstatic --noinput"
-    startCommand: bash -lc ".venv/bin/python manage.py migrate --noinput || (sleep 5 && .venv/bin/python manage.py migrate --noinput); .venv/bin/python -c 'import os, django; django.setup(); from django.contrib.auth import get_user_model; u=os.environ.get(\"ADMIN_USERNAME\"); p=os.environ.get(\"ADMIN_PASSWORD\"); e=os.environ.get(\"ADMIN_EMAIL\"); User=get_user_model();\nif u and p and e:\n user, created = User.objects.get_or_create(username=u, defaults={\"email\": e}); user.is_staff = True; user.is_superuser = True; user.email = e; user.set_password(p); user.save(); print(\"Admin upserted:\", u, \"created=\", created)\nelse:\n print(\"Admin env vars missing; skipping\")'; exec .venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers=1 --timeout 120 --log-file -"
+    startCommand: bash -lc ".venv/bin/python manage.py migrate --noinput || (sleep 5 && .venv/bin/python manage.py migrate --noinput); .venv/bin/python -c 'import os, django; django.setup(); from django.contrib.auth import get_user_model; u=os.environ.get(\"ADMIN_USERNAME\"); p=os.environ.get(\"ADMIN_PASSWORD\"); e=os.environ.get(\"ADMIN_EMAIL\"); User=get_user_model();\nif u and p and e:\n user, created = User.objects.get_or_create(username=u, defaults={\"email\": e}); user.is_staff = True; user.is_superuser = True; user.email = e; user.set_password(p); user.save(); print(\"Admin upserted:\", u, \"created=\", created)\nelse:\n print(\"Admin env vars missing; skipping\")'; exec .venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers=1 --timeout 300 --max-requests 1000 --max-requests-jitter 100 --preload --log-level info --access-logfile - --error-logfile -"
     autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
@@ -33,6 +33,10 @@ services:
         value: admin123
       - key: ADMIN_EMAIL
         value: admin@example.com
+      - key: DJANGO_LOG_LEVEL
+        value: INFO
+      - key: GUNICORN_LOG_LEVEL
+        value: info
     healthCheckPath: /admin/login/
 
 databases:
